@@ -2,6 +2,7 @@ package net.hrntknr.grappling;
 
 import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -12,8 +13,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 public class Grappling extends JavaPlugin implements Listener {
@@ -47,18 +46,28 @@ public class Grappling extends JavaPlugin implements Listener {
 
   @EventHandler
   public void onFish(PlayerFishEvent event) {
-    if (event.getState() == PlayerFishEvent.State.REEL_IN) {
-      Player player = event.getPlayer();
-      ItemStack mainHandItem = player.getInventory().getItemInMainHand();
-      ItemStack offHandItem = player.getInventory().getItemInOffHand();
-      if (!mainHandItem.equals(grapplingHookItemStack) && !offHandItem.equals(grapplingHookItemStack)) {
-        return;
-      }
+    Player player = event.getPlayer();
+    ItemStack mainHandItem = player.getInventory().getItemInMainHand();
+    ItemStack offHandItem = player.getInventory().getItemInOffHand();
+    if (!mainHandItem.equals(grapplingHookItemStack) && !offHandItem.equals(grapplingHookItemStack)) {
+      return;
+    }
+    if (
+      event.getState() == PlayerFishEvent.State.REEL_IN ||
+      event.getState() == PlayerFishEvent.State.IN_GROUND
+    ) {
       Location playerPos = player.getLocation();
       Location hookPos = event.getHook().getLocation();
       Vector vec = hookPos.toVector().subtract(playerPos.toVector());
       vec.setY(vec.getY() * 0.3);
       player.setVelocity(vec);
+    }
+    if (event.getState() == PlayerFishEvent.State.CAUGHT_ENTITY) {
+      Entity entity = event.getCaught();
+      Location playerPos = player.getLocation();
+      Location entityPos = entity.getLocation();
+      Vector vec = playerPos.toVector().subtract(entityPos.toVector());
+      entity.setVelocity(vec.multiply(0.3));
     }
   }
 
